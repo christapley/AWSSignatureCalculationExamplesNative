@@ -1,0 +1,12 @@
+*.pdb
+AWSUtil/AWSUtil/Debug/stdafx.obj
+*.user
+*.lastbuildstate
+AWSUtil/AWSUtilTest/Debug/AWSUtilTest.tlog/CL.command.1.tlog
+*.log
+*.sdf
+*.opensdf
+*.suo
+*.ipch
+*.exp
+AWSUtil/Debug/AWSUtil.lib
