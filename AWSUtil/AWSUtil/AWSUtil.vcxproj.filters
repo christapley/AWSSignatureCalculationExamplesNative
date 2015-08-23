@@ -30,9 +30,6 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="S3.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Auth.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -57,9 +54,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dllmain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="S3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AWS4SignerBase.cpp">

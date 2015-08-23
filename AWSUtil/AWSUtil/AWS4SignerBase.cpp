@@ -257,3 +257,26 @@ std::vector<unsigned char> AWS::Auth::AWS4SignerBase::Sign(const std::string & s
 	hmac_sha256_final(&Ctx, &MAC[0], SHA256_DIGEST_SIZE);
 	return MAC;
 }
+
+void AWS::Auth::AWS4SignerBase::GetFormattedTimes(std::string &sDateTime, std::string &sDate)
+{
+	std::time_t t = std::time(nullptr);
+	std::tm gtm;
+
+	AWSgmtime(&gtm, &t);
+
+	{
+		std::stringstream Stream;
+		//Stream << std::put_time(&gtm, "%Y%m%dT%H%M%S%z");
+		Stream << std::put_time(&gtm, "%Y%m%dT%H%M%SZ");
+		sDateTime = Stream.str();
+		//Time = "20150823T094134Z";
+	}
+	
+	{
+		//"yyyyMMdd"
+		std::stringstream Stream;
+		Stream << std::put_time(&gtm, "%Y%m%d");
+		sDate = Stream.str();
+	}
+}

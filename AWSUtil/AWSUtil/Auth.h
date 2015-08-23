@@ -6,18 +6,18 @@
 #include <vector>
 #include <list>
 
-#ifdef AWSUTIL_EXPORTS
-#    define AWSUTIL_IMPEX __declspec(dllexport)
-#    define AWSUTIL_TEMPLATE
-#else
-#    define AWSUTIL_IMPEX __declspec(dllimport)
-#    define AWSUTIL_TEMPLATE extern
-#endif
-
 #ifdef WIN32
 #define AWSgmtime(a,b) gmtime_s(a,b)
+
+#ifdef AWSUTIL_EXPORTS
+#define AWSUTIL_IMPEX __declspec(dllexport)
+#else
+#define AWSUTIL_IMPEX __declspec(dllimport)
+#endif
+
 #else
 #define AWSgmtime(a,b) gmtime_r(b,a)
+#define AWSUTIL_IMPEX
 #endif
 
 namespace AWS {
@@ -39,6 +39,8 @@ namespace AWS {
 			static const std::string &Scheme();
 			static const std::string &Algorithm();
 			static const std::string &Terminator();
+
+			static void GetFormattedTimes(std::string &sDateTime, std::string &sDate);
 
 		protected:
 			static std::string GetCanonicalizedHeaderNames(const std::map<std::string, std::string> &Headers);
@@ -66,7 +68,7 @@ namespace AWS {
 			Impl *m_pImpl;
 		};
 
-		class AWSUTIL_IMPEX AWS4SignerForAuthorizationHeader : AWS4SignerBase {
+		class AWSUTIL_IMPEX AWS4SignerForAuthorizationHeader : public AWS4SignerBase {
 		public:
 			AWS4SignerForAuthorizationHeader(const std::string &sEndpointUrl, const std::string &sHttpMethod, const std::string &sServiceName, const std::string &sRegionName);
 			
@@ -98,7 +100,39 @@ namespace AWS {
 				const std::string &awsAccessKey,
 				const std::string &awsSecretKey);
 		};
+		class AWS4SignerForQueryParameterAuth : public AWS4SignerBase {
 
+			AWS4SignerForQueryParameterAuth(const std::string &sEndpointUrl, const std::string &sHTTPMethod, const std::string &sServiceName, const std::string &sRegionName);
+
+			/**
+			* Computes an AWS4 authorization for a request, suitable for embedding in
+			* query parameters.
+			*
+			* @param headers
+			*            The request headers; 'Host' and 'X-Amz-Date' will be added to
+			*            this set.
+			* @param queryParameters
+			*            Any query parameters that will be added to the endpoint. The
+			*            parameters should be specified in canonical format.
+			* @param bodyHash
+			*            Precomputed SHA256 hash of the request body content; this
+			*            value should also be set as the header 'X-Amz-Content-SHA256'
+			*            for non-streaming uploads.
+			* @param awsAccessKey
+			*            The user's AWS Access Key.
+			* @param awsSecretKey
+			*            The user's AWS Secret Key.
+			* @return The computed authorization string for the request. This value
+			*         needs to be set as the header 'Authorization' on the subsequent
+			*         HTTP request.
+			*/
+			std::string computeSignature(std::map<std::string, std::string> &Headers,
+				std::map<std::string, std::string> &QueryParameters,
+				const std::string &bodyHash,
+				const std::string &awsAccessKey,
+				const std::string &awsSecretKey);
+
+		};
 	}
 }
 

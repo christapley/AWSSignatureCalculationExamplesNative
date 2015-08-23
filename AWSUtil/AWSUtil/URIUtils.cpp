@@ -37,3 +37,15 @@ std::string AWS::Util::URIUtils::URLDecode(const std::string & URI)
 	}
 	return sDecoded;
 }
+
+std::string AWS::Util::URIUtils::GetHostName(const std::string & URI)
+{
+	size_t nStartPos = URI.find("//");
+	if (nStartPos == std::string::npos) {
+		// throw
+		return "";
+	}
+	nStartPos += 2;
+	size_t nEndPos = URI.find("/", nStartPos);
+	return URI.substr(nStartPos, nEndPos == std::string::npos ? std::string::npos : nEndPos - nStartPos);
+}

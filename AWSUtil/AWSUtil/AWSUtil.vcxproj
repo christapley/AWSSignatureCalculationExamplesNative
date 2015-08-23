@@ -147,7 +147,6 @@
     <ClInclude Include="BinaryUtils.h" />
     <ClInclude Include="hmac\hmac_sha2.h" />
     <ClInclude Include="hmac\sha2.h" />
-    <ClInclude Include="S3.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="URIUtils.h" />
@@ -173,7 +172,6 @@
     </ClCompile>
     <ClCompile Include="hmac\hmac_sha2.cpp" />
     <ClCompile Include="hmac\sha2.cpp" />
-    <ClCompile Include="S3.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

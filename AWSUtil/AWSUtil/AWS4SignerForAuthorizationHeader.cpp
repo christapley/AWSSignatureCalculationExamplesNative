@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Auth.h"
+#include "URIUtils.h"
 
 AWS::Auth::AWS4SignerForAuthorizationHeader::AWS4SignerForAuthorizationHeader(
 	const std::string & sEndpointUrl, 
@@ -17,32 +18,15 @@ std::string AWS::Auth::AWS4SignerForAuthorizationHeader::ComputeSignature(
 	const std::string & awsAccessKey, 
 	const std::string & awsSecretKey)
 {
-
-	std::time_t t = std::time(nullptr);
-	std::tm gtm;
-
-
-	AWSgmtime(&gtm, &t);
-
-	std::string Time;
-	{
-		std::stringstream Stream;
-		//Stream << std::put_time(&gtm, "%Y%m%dT%H%M%S%z");
-		Stream << std::put_time(&gtm, "%Y%m%dT%H%M%SZ");
-		Time = Stream.str();
-		//Time = "20150823T094134Z";
-	}
+	std::string sTime, sDateStamp;
+	AWS4SignerBase::GetFormattedTimes(sTime, sDateStamp);
+	
 	// update the headers with required 'x-amz-date' and 'host' values
-	Headers["x-amz-date"] = Time;
+	Headers["x-amz-date"] = sTime;
+
 	const std::string &EndPointURL = AWS4SignerBase::EndPointURL();
-	size_t nStartPos = EndPointURL.find("//");
-	if (nStartPos == std::string::npos) {
-		// throw
-		return "";
-	}
-	nStartPos += 2;
-	size_t nEndPos = EndPointURL.find("/", nStartPos);
-	std::string sHostName = EndPointURL.substr(nStartPos, nEndPos == std::string::npos ? std::string::npos : nEndPos-nStartPos);
+	std::string sHostName = AWS::Util::URIUtils::GetHostName(EndPointURL);
+
 	Headers["Host"] = sHostName;
 
 	// canonicalize the headers; we need the set of header names as well as the
@@ -61,13 +45,7 @@ std::string AWS::Auth::AWS4SignerForAuthorizationHeader::ComputeSignature(
 		sCanonicalizedHeaders, sBodyHash);
 
 	// construct the string to be signed
-	//"yyyyMMdd"
-	std::string sDateStamp;
-	{
-		std::stringstream Stream;
-		Stream << std::put_time(&gtm, "%Y%m%d");
-		sDateStamp = Stream.str();
-	}
+
 	
 	const std::string &sTerminator = AWS4SignerBase::Terminator();
 	const std::string &sAlgorithm = AWS4SignerBase::Algorithm();

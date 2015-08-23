@@ -17,6 +17,8 @@ namespace AWS {
 		public:
 			static std::string URLEncode(const std::string &URI);
 			static std::string URLDecode(const std::string &URI);
+
+			static std::string GetHostName(const std::string &URI);
 		};
 	}
 }
