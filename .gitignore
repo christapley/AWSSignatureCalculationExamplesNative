@@ -10,3 +10,9 @@ AWSUtil/AWSUtilTest/Debug/AWSUtilTest.tlog/CL.command.1.tlog
 *.ipch
 *.exp
 AWSUtil/Debug/AWSUtil.lib
+*.obj
+*.pch
+*.tlog
+AWSUtil/AWSUtil/Debug/vc140.idb
+*.dll
+*.ilk

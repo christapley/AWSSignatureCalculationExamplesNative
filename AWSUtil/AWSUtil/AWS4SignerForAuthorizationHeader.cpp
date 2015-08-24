@@ -54,7 +54,7 @@ std::string AWS::Auth::AWS4SignerForAuthorizationHeader::ComputeSignature(
 	const std::string &ServiceName = AWS4SignerBase::ServiceName();
 
 	std::string sScope = sDateStamp + "/" + RegionName + "/" + ServiceName + "/" + sTerminator;
-	std::string sStringToSign = GetStringToSign(sScheme, sAlgorithm, Time, sScope, CanonicalRequest);
+	std::string sStringToSign = GetStringToSign(sScheme, sAlgorithm, sTime, sScope, CanonicalRequest);
 
 	// compute the signing key
 	std::string sSecret = sScheme;

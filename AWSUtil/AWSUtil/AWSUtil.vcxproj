@@ -152,6 +152,8 @@
     <ClInclude Include="URIUtils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AWS4SignerForChunkedUpload.cpp" />
+    <ClCompile Include="AWS4SignerForQueryParameterAuth.cpp" />
     <ClCompile Include="AWS4SignerBase.cpp" />
     <ClCompile Include="AWS4SignerForAuthorizationHeader.cpp" />
     <ClCompile Include="AWSUtil.cpp" />

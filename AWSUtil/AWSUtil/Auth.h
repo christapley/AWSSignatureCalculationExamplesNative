@@ -33,7 +33,7 @@ namespace AWS {
 			static std::string GetCanonicalizedQueryString(const std::map<std::string, std::string> &Parameters);
 			static std::string Hash(const std::string &sText);
 			static std::string Hash(const char *sData);
-			
+
 			static const std::string &EmptyBodySHA256();
 			static const std::string &UnsignedPayload();
 			static const std::string &Scheme();
@@ -71,7 +71,7 @@ namespace AWS {
 		class AWSUTIL_IMPEX AWS4SignerForAuthorizationHeader : public AWS4SignerBase {
 		public:
 			AWS4SignerForAuthorizationHeader(const std::string &sEndpointUrl, const std::string &sHttpMethod, const std::string &sServiceName, const std::string &sRegionName);
-			
+
 			/**
 			* Computes an AWS4 signature for a request, ready for inclusion as an
 			* 'Authorization' header.
@@ -133,7 +133,107 @@ namespace AWS {
 				const std::string &awsSecretKey);
 
 		};
+
+		class AWS4SignerForChunkedUpload : public AWS4SignerBase {
+		public:
+			/**
+			* SHA256 substitute marker used in place of x-amz-content-sha256 when
+			* employing chunked uploads
+			*/
+			static const std::string &StreamingBodySHA256();
+
+			AWS4SignerForChunkedUpload(
+				const std::string &sEndpointUrl,
+				const std::string &sHttpMethod,
+				const std::string &sServiceName,
+				const std::string &sRegionName);
+
+			/**
+			* Computes an AWS4 signature for a request, ready for inclusion as an
+			* 'Authorization' header.
+			*
+			* @param Headers
+			*            The request headers; 'Host' and 'X-Amz-Date' will be added to
+			*            this set.
+			* @param QueryParameters
+			*            Any query parameters that will be added to the endpoint. The
+			*            parameters should be specified in canonical format.
+			* @param sBodyHash
+			*            Precomputed SHA256 hash of the request body content; this
+			*            value should also be set as the header 'X-Amz-Content-SHA256'
+			*            for non-streaming uploads.
+			* @param awsAccessKey
+			*            The user's AWS Access Key.
+			* @param awsSecretKey
+			*            The user's AWS Secret Key.
+			* @return The computed authorization string for the request. This value
+			*         needs to be set as the header 'Authorization' on the subsequent
+			*         HTTP request.
+			*/
+			std::string ComputeSignature(
+				std::map<std::string, std::string> &Headers,
+				std::map<std::string, std::string> &QueryParameters,
+				const std::string &sBodyHash,
+				const std::string &awsAccessKey,
+				const std::string &awsSecretKey);
+
+			/**
+			* Calculates the expanded payload size of our data when it is chunked
+			*
+			* @param nOriginalLength
+			*            The true size of the data payload to be uploaded
+			* @param nChunkSize
+			*            The size of each chunk we intend to send; each chunk will be
+			*            prefixed with signed header data, expanding the overall size
+			*            by a determinable amount
+			* @return The overall payload size to use as content-length on a chunked
+			*         upload
+			*/
+			static int64_t CalculateChunkedContentLength(int64_t nOriginalLength, int64_t nChunkSize);
+			
+			/**
+			* Returns a chunk for upload consisting of the signed 'header' or chunk
+			* prefix plus the user data. The signature of the chunk incorporates the
+			* signature of the previous chunk (or, if the first chunk, the signature of
+			* the headers portion of the request).
+			*
+			* @param userDataLen
+			*            The length of the user data contained in userData
+			* @param userData
+			*            Contains the user data to be sent in the upload chunk
+			* @return A new buffer of data for upload containing the chunk header plus
+			*         user data
+			*/
+			std::vector<unsigned char> ConstructSignedChunk(int nUserDataLen, std::vector<unsigned char> UserData);
+			
+		private:
+			/**
+			* Returns the size of a chunk header, which only varies depending on the
+			* selected chunk size
+			*
+			* @param nChunkDataSize
+			*            The intended size of each chunk; this is placed into the chunk
+			*            header
+			* @return The overall size of the header that will prefix the user data in
+			*         each chunk
+			*/
+			static int64_t CalculateChunkHeaderLength(int64_t nChunkDataSize);
+
+			AWS4SignerForChunkedUpload() : AWS4SignerBase(std::string(), std::string(), std::string(), std::string()) {}
+			AWS4SignerForChunkedUpload(const AWS4SignerForChunkedUpload &s) : AWS4SignerBase(std::string(), std::string(), std::string(), std::string()) {}
+			AWS4SignerForChunkedUpload &operator=(const AWS4SignerForChunkedUpload &s) { return *this; }
+
+			class Impl;
+			Impl *m_pImpl;
+		};
 	}
 }
 
 #endif // #define AWS_UTIL_AUTH_H
+
+#ifdef NOT_DEF
+public class AWS4SignerForChunkedUpload extends AWS4SignerBase {
+
+	
+}
+#endif
