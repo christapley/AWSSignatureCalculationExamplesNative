@@ -16,6 +16,13 @@ namespace AWS {
 		class AWSUTIL_IMPEX BinaryUtils {
 		public:
 			static std::string ToHex(const std::vector<unsigned char> &Digest);
+
+			template<typename T>
+			static std::string ToHexString(T v) {
+				std::stringstream ss(std::stringstream::out);
+				ss << std::hex << v;
+				return ss.str();
+			}
 		};
 	}
 }

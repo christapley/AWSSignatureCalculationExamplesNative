@@ -32,6 +32,7 @@ namespace AWS {
 
 			static std::string GetCanonicalizedQueryString(const std::map<std::string, std::string> &Parameters);
 			static std::string Hash(const std::string &sText);
+			static std::string Hash(const std::vector<unsigned char> &Data);
 			static std::string Hash(const char *sData);
 
 			static const std::string &EmptyBodySHA256();
@@ -197,14 +198,14 @@ namespace AWS {
 			* signature of the previous chunk (or, if the first chunk, the signature of
 			* the headers portion of the request).
 			*
-			* @param userDataLen
+			* @param nUserDataLen
 			*            The length of the user data contained in userData
-			* @param userData
+			* @param UserData
 			*            Contains the user data to be sent in the upload chunk
-			* @return A new buffer of data for upload containing the chunk header plus
+			* @param SignedChunk A new buffer of data for upload containing the chunk header plus
 			*         user data
 			*/
-			std::vector<unsigned char> ConstructSignedChunk(int nUserDataLen, std::vector<unsigned char> UserData);
+			void ConstructSignedChunk(int nUserDataLen, const std::vector<unsigned char> &UserData, std::vector<unsigned char> &SignedChunk);
 			
 		private:
 			/**

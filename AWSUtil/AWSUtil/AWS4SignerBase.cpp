@@ -137,6 +137,14 @@ std::string AWS::Auth::AWS4SignerBase::Hash(const char * sData)
 	return AWS::Util::BinaryUtils::ToHex(Digest);
 }
 
+std::string AWS::Auth::AWS4SignerBase::Hash(const std::vector<unsigned char> &Data)
+{
+	std::vector<unsigned char> Digest;
+	Digest.resize(SHA256_DIGEST_SIZE);
+	sha256(&Data[0], Data.size(), &Digest[0]);
+
+	return AWS::Util::BinaryUtils::ToHex(Digest);
+}
 
 std::string AWS::Auth::AWS4SignerBase::GetCanonicalizedHeaderNames(const std::map<std::string, std::string>& Headers)
 {

@@ -87,13 +87,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../AWSUtil/hmac</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\SDKs\curl-7.44.0\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\$(Configuration)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>AWSUtil.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\$(Configuration);C:\SDKs\curl-7.44.0\builds\libcurl-vc-x86-debug-dll-ipv6-sspi-winssl\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>AWSUtil.lib;libcurl_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

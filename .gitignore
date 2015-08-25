@@ -16,3 +16,5 @@ AWSUtil/Debug/AWSUtil.lib
 AWSUtil/AWSUtil/Debug/vc140.idb
 *.dll
 *.ilk
+*.idb
+*.exe

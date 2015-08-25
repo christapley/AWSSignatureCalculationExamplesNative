@@ -34,13 +34,13 @@ public:
 	* The derived signing key used in the original signature computation and
 	* re-used for each chunk
 	*/
-	std::vector<unsigned char> SigningKey;
+	std::vector<unsigned char> m_SigningKey;
 
 	Impl() :
 		m_sLastComputedSignature(),
 		m_sDateTimeStamp(),
 		m_sScope(),
-		SigningKey() {}
+		m_SigningKey() {}
 };
 
 std::string AWS::Auth::AWS4SignerForChunkedUpload::Impl::STREAMING_BODY_SHA256 = "STREAMING_BODY_SHA256";
@@ -151,81 +151,72 @@ int64_t AWS::Auth::AWS4SignerForChunkedUpload::CalculateChunkedContentLength(int
 		+ CalculateChunkHeaderLength(0);
 }
 
-std::vector<unsigned char> AWS::Auth::AWS4SignerForChunkedUpload::ConstructSignedChunk(int nUserDataLen, std::vector<unsigned char> UserData)
+void AWS::Auth::AWS4SignerForChunkedUpload::ConstructSignedChunk(int nUserDataLen, const std::vector<unsigned char> &UserData, std::vector<unsigned char> &SignedChunk)
 {
 	// to keep our computation routine signatures simple, if the userData
 	// buffer contains less data than it could, shrink it. Note the special case
 	// to handle the requirement that we send an empty chunk to complete
 	// our chunked upload.
 	std::vector<unsigned char> DataToChunk;
-	return DataToChunk;
-	//if (nUserDataLen > 0) {
-	//	if (nUserDataLen < UserData.size()) {
-	//		// shrink the chunkdata to fit
-	//		DataToChunk.resize(nUserDataLen);
-	//		memcpy(&DataToChunk[0], &UserData[0], nUserDataLen);
-	//	}
-	//	else {
-	//		dataToChunk = userData;
-	//	}
-	//}
+	const std::vector<unsigned char> *pData = NULL;
+	
+	if (nUserDataLen > 0) {
+		if (nUserDataLen < UserData.size()) {
+			// shrink the chunkdata to fit
+			DataToChunk.resize(nUserDataLen);
+			memcpy(&DataToChunk[0], &UserData[0], nUserDataLen);
+			pData = &DataToChunk;
+		}
+		else {
+			pData = &UserData;
+		}
+	}
 
-	//StringBuilder chunkHeader = new StringBuilder();
+	std::stringstream ssChunkHeader(std::stringstream::out);
+	// start with size of user data
+	std::string sHexLength = Util::BinaryUtils::ToHexString<size_t>(pData->size());
+	ssChunkHeader << sHexLength.length();
 
-	//// start with size of user data
-	//chunkHeader.append(Integer.toHexString(dataToChunk.length));
+	// nonsig-extension; we have none in these samples
+	std::string sNonsigExtension;
 
-	//// nonsig-extension; we have none in these samples
-	//String nonsigExtension = "";
+	// if this is the first chunk, we package it with the signing result
+	// of the request headers, otherwise we use the cached signature
+	// of the previous chunk
 
-	//// if this is the first chunk, we package it with the signing result
-	//// of the request headers, otherwise we use the cached signature
-	//// of the previous chunk
+	// sig-extension
+	std::string sChunkStringToSign =
+		Impl::CHUNK_STRING_TO_SIGN_PREFIX + "\n" +
+		m_pImpl->m_sDateTimeStamp + "\n" +
+		m_pImpl->m_sScope + "\n" +
+		m_pImpl->m_sLastComputedSignature + "\n" +
+		AWS4SignerBase::Hash(sNonsigExtension) + "\n" +
+		AWS4SignerBase::Hash(*pData);
 
-	//// sig-extension
-	//String chunkStringToSign =
-	//	CHUNK_STRING_TO_SIGN_PREFIX + "\n" +
-	//	dateTimeStamp + "\n" +
-	//	scope + "\n" +
-	//	lastComputedSignature + "\n" +
-	//	BinaryUtils.toHex(AWS4SignerBase.hash(nonsigExtension)) + "\n" +
-	//	BinaryUtils.toHex(AWS4SignerBase.hash(dataToChunk));
+	// compute the V4 signature for the chunk
+	std::string sChunkSignature = Util::BinaryUtils::ToHex(AWS4SignerBase::Sign(sChunkStringToSign, m_pImpl->m_SigningKey));
 
-	//// compute the V4 signature for the chunk
-	//String chunkSignature = BinaryUtils.toHex(AWS4SignerBase.sign(chunkStringToSign, signingKey, "HmacSHA256"));
+	// cache the signature to include with the next chunk's signature computation
+	m_pImpl->m_sLastComputedSignature = sChunkSignature;
 
-	//// cache the signature to include with the next chunk's signature computation
-	//lastComputedSignature = chunkSignature;
+	// construct the actual chunk, comprised of the non-signed extensions, the
+	// 'headers' we just signed and their signature, plus a newline then copy
+	// that plus the user's data to a payload to be written to the request stream
+	ssChunkHeader << sNonsigExtension << Impl::CHUNK_SIGNATURE_HEADER << sChunkSignature << Impl::CLRF;
+	
+	std::string sChunkHeader = ssChunkHeader.str();
 
-	//// construct the actual chunk, comprised of the non-signed extensions, the
-	//// 'headers' we just signed and their signature, plus a newline then copy
-	//// that plus the user's data to a payload to be written to the request stream
-	//chunkHeader.append(nonsigExtension + CHUNK_SIGNATURE_HEADER + chunkSignature);
-	//chunkHeader.append(CLRF);
-
-	//try {
-	//	byte[] header = chunkHeader.toString().getBytes("UTF-8");
-	//	byte[] trailer = CLRF.getBytes("UTF-8");
-	//	byte[] signedChunk = new byte[header.length + dataToChunk.length + trailer.length];
-	//	System.arraycopy(header, 0, signedChunk, 0, header.length);
-	//	System.arraycopy(dataToChunk, 0, signedChunk, header.length, dataToChunk.length);
-	//	System.arraycopy(trailer, 0,
-	//		signedChunk, header.length + dataToChunk.length,
-	//		trailer.length);
-
-	//	// this is the total data for the chunk that will be sent to the request stream
-	//	return signedChunk;
-	//}
-	//catch (Exception e) {
-	//	throw new RuntimeException("Unable to sign the chunked data. " + e.getMessage(), e);
-	//}
+	SignedChunk.clear();
+	SignedChunk.resize(sChunkHeader.length() + pData->size() + Impl::CLRF.length());
+		
+	memcpy(&SignedChunk[0], sChunkHeader.c_str(), sChunkHeader.length());
+	memcpy(&SignedChunk[sChunkHeader.length()], &(*pData)[0], pData->size());
+	memcpy(&SignedChunk[sChunkHeader.length() + pData->size()], Impl::CLRF.c_str(), Impl::CLRF.length());
 }
 
 int64_t AWS::Auth::AWS4SignerForChunkedUpload::CalculateChunkHeaderLength(int64_t nChunkDataSize)
 {
-	std::stringstream ss(std::stringstream::out);
-	ss << std::hex << nChunkDataSize;
-	std::string sHex = ss.str();
+	std::string sHex = Util::BinaryUtils::ToHexString<int64_t>(nChunkDataSize);
 
 	return sHex.length()
 		+ Impl::CHUNK_SIGNATURE_HEADER.length()
