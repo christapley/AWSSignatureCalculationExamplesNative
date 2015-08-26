@@ -69,6 +69,10 @@ AWS::Auth::AWS4SignerBase::AWS4SignerBase(const std::string & sEndPointURL, cons
 
 AWS::Auth::AWS4SignerBase::~AWS4SignerBase()
 {
+	if (m_pImpl) {
+		delete m_pImpl;
+		m_pImpl = NULL;
+	}
 }
 
 const std::string &AWS::Auth::AWS4SignerBase::EndPointURL() const {
@@ -108,9 +112,9 @@ std::string AWS::Auth::AWS4SignerBase::GetCanonicalizedQueryString(const std::ma
 
 	std::string sCanonicalParameters;
 	for (auto it = SortedParameters.cbegin(); it != SortedParameters.cend(); ++it) {
-		sCanonicalParameters.append(AWS::Util::URIUtils::URLEncode(it->first));
+		sCanonicalParameters.append(AWS::Util::URIUtils::URLEncode(it->first, false));
 		sCanonicalParameters.append("=");
-		sCanonicalParameters.append(AWS::Util::URIUtils::URLEncode(it->second));
+		sCanonicalParameters.append(AWS::Util::URIUtils::URLEncode(it->second, false));
 		sCanonicalParameters.append("&");
 	}
 	if (!sCanonicalParameters.empty()) {
@@ -231,7 +235,13 @@ std::string AWS::Auth::AWS4SignerBase::GetCanonicalizedResourcePath(const std::s
 	if (nPos == std::string::npos) {
 		return "/";
 	}
-	return AWS::Util::URIUtils::URLEncode(sEndPointURL.substr(nPos, sEndPointURL.find("?", nPos + 1)));
+	size_t nEndPos = sEndPointURL.find("?", nPos + 1);
+	if (nEndPos == std::string::npos) {
+		return AWS::Util::URIUtils::URLEncode(sEndPointURL.substr(nPos), true);
+	}
+	else {
+		return AWS::Util::URIUtils::URLEncode(sEndPointURL.substr(nPos, nEndPos-nPos), true);
+	}
 }
 
 std::string AWS::Auth::AWS4SignerBase::GetStringToSign(const std::string & sScheme, const std::string & sAlgorithm, const std::string & sDateTime, const std::string & sScope, const std::string & sCanonicalRequest)
@@ -278,7 +288,7 @@ void AWS::Auth::AWS4SignerBase::GetFormattedTimes(std::string &sDateTime, std::s
 		//Stream << std::put_time(&gtm, "%Y%m%dT%H%M%S%z");
 		Stream << std::put_time(&gtm, "%Y%m%dT%H%M%SZ");
 		sDateTime = Stream.str();
-		//Time = "20150823T094134Z";
+		//sDateTime = "20150826T125924Z";
 	}
 	
 	{

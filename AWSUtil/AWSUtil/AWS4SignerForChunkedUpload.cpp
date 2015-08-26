@@ -67,6 +67,14 @@ AWS::Auth::AWS4SignerForChunkedUpload::AWS4SignerForChunkedUpload(
 
 }
 
+AWS::Auth::AWS4SignerForChunkedUpload::~AWS4SignerForChunkedUpload()
+{
+	if (m_pImpl) {
+		delete m_pImpl;
+		m_pImpl = NULL;
+	}
+}
+
 std::string AWS::Auth::AWS4SignerForChunkedUpload::ComputeSignature(
 	std::map<std::string, std::string> &Headers,
 	std::map<std::string, std::string> &QueryParameters,
@@ -151,7 +159,7 @@ int64_t AWS::Auth::AWS4SignerForChunkedUpload::CalculateChunkedContentLength(int
 		+ CalculateChunkHeaderLength(0);
 }
 
-void AWS::Auth::AWS4SignerForChunkedUpload::ConstructSignedChunk(int nUserDataLen, const std::vector<unsigned char> &UserData, std::vector<unsigned char> &SignedChunk)
+void AWS::Auth::AWS4SignerForChunkedUpload::ConstructSignedChunk(size_t nUserDataLen, const std::vector<unsigned char> &UserData, std::vector<unsigned char> &SignedChunk)
 {
 	// to keep our computation routine signatures simple, if the userData
 	// buffer contains less data than it could, shrink it. Note the special case

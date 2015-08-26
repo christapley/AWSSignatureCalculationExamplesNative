@@ -15,7 +15,7 @@ namespace AWS {
 	namespace Util {
 		class AWSUTIL_IMPEX URIUtils {
 		public:
-			static std::string URLEncode(const std::string &URI);
+			static std::string URLEncode(const std::string &URI, bool bKeepSlashes);
 			static std::string URLDecode(const std::string &URI);
 
 			static std::string GetHostName(const std::string &URI);

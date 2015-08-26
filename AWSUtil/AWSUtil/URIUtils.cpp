@@ -1,25 +1,32 @@
 #include "URIUtils.h"
 
-std::string AWS::Util::URIUtils::URLEncode(const std::string & URI)
+std::string AWS::Util::URIUtils::URLEncode(const std::string & URI, bool bKeepSlashes)
 {
-	std::string sEncoded;
-	sEncoded.reserve(URI.length());
-	char Buffer[32];
+	std::ostringstream escaped;
+	escaped.fill('0');
+	escaped << std::hex;
 
-	for (auto it = URI.cbegin(); it != URI.cend(); ++it) {
-		if (isxdigit(*it) == 0) {
-#ifdef WIN32
-			sprintf_s(&Buffer[0], sizeof(Buffer), "%%%02x", static_cast<int>(*it));
-#else
-			_snprintf(&Buffer[0], sizeof(Buffer), "%%%02x", static_cast<int>(*it));
-#endif
-			sEncoded += Buffer;
-		}
-		else {
-			sEncoded += *it;
+	if (bKeepSlashes) {
+		for (auto it = URI.begin(); it != URI.end(); ++it) {
+			std::string::value_type c = (*it);
+			if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~' || c == '/') {
+				escaped << c;
+				continue;
+			}
+			escaped << '%' << std::setw(2) << int((unsigned char)c);
 		}
 	}
-	return sEncoded;
+	else {
+		for (auto it = URI.begin(); it != URI.end(); ++it) {
+			std::string::value_type c = (*it);
+			if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+				escaped << c;
+				continue;
+			}
+			escaped << '%' << std::setw(2) << int((unsigned char)c);
+		}
+	}
+	return escaped.str();
 }
 
 std::string AWS::Util::URIUtils::URLDecode(const std::string & URI)

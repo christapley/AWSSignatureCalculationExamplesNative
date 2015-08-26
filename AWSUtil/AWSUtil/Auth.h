@@ -149,6 +149,8 @@ namespace AWS {
 				const std::string &sServiceName,
 				const std::string &sRegionName);
 
+			~AWS4SignerForChunkedUpload();
+
 			/**
 			* Computes an AWS4 signature for a request, ready for inclusion as an
 			* 'Authorization' header.
@@ -205,7 +207,7 @@ namespace AWS {
 			* @param SignedChunk A new buffer of data for upload containing the chunk header plus
 			*         user data
 			*/
-			void ConstructSignedChunk(int nUserDataLen, const std::vector<unsigned char> &UserData, std::vector<unsigned char> &SignedChunk);
+			void ConstructSignedChunk(size_t nUserDataLen, const std::vector<unsigned char> &UserData, std::vector<unsigned char> &SignedChunk);
 			
 		private:
 			/**
