@@ -26,7 +26,7 @@ void GetS3Object(const std::string &sBucketName, const std::string &sFileKey, co
 	// for a simple GET, we have no body so supply the precomputed 'empty' hash
 	std::map<std::string, std::string> Headers;
 	Headers["x-amz-content-sha256"] = AWS::Auth::AWS4SignerBase::EmptyBodySHA256();
-	Headers["Accept"] = "*/*";
+	Headers["Accept"] = "*/*"; //curl adds this
 
 
 	std::map<std::string, std::string> QueryParameters;
@@ -74,6 +74,104 @@ void GetS3Object(const std::string &sBucketName, const std::string &sFileKey, co
 	curl_easy_cleanup(curl_handle);
 }
 
+/**
+* Construct a basic presigned url to the object '/ExampleObject.txt' in the
+* given bucket and region using path-style object addressing. The signature
+* V4 authorization data is embedded in the url as query parameters.
+*/
+void GetPresignedUrlToS3Object(const std::string &sBucketName, const std::string &sFileKey, const std::string &sRegionName, const std::string &awsAccessKey, const std::string &awsSecretKey)
+{
+	printf("*******************************************************\n");
+	printf("*    Executing sample 'GetPresignedUrlToS3Object'     *\n");
+	printf("*******************************************************\n");
+
+	std::string sEndpointUrl;
+	if (sRegionName.compare("us-east-1") == 0) {
+		sEndpointUrl = "https://s3.amazonaws.com/" + sBucketName + "/" + sFileKey;
+	}
+	else {
+		sEndpointUrl = "https://s3-" + sRegionName + ".amazonaws.com/" + sBucketName + "/" + sFileKey;
+	}
+	
+	// construct the query parameter string to accompany the url
+	std::map<std::string, std::string> QueryParameters;
+
+	// for SignatureV4, the max expiry for a presigned url is 7 days,
+	// expressed in seconds
+	int nExpiresIn = 7 * 24 * 60 * 60;
+	
+	QueryParameters["X-Amz-Expires"] = std::to_string(nExpiresIn);
+
+	// we have no headers for this sample, but the signer will add 'host'
+	std::map<std::string, std::string> Headers;
+
+	//Headers["Accept"] = "*/*"; //curl adds this
+
+	AWS::Auth::AWS4SignerForQueryParameterAuth Signer(sEndpointUrl, "GET", "s3", sRegionName);
+	std::string sAuthorizationQueryParameters = Signer.ComputeSignature(Headers,
+		QueryParameters,
+		AWS::Auth::AWS4SignerBase::UnsignedPayload(),
+		awsAccessKey,
+		awsSecretKey);
+
+	// build the presigned url to incorporate the authorization elements as query parameters
+	std::string sPresignedUrl = sEndpointUrl + "?" + sAuthorizationQueryParameters;
+	printf("--------- Computed presigned url ---------\n");
+	printf("%s\n", sPresignedUrl.c_str());
+	printf("------------------------------------------\n");
+}
+
+void GutS3Object(const std::string &sBucketName, const std::string &sFileKey, const std::string &sRegionName, const std::string &awsAccessKey, const std::string &awsSecretKey)
+{
+	printf("************************************************\n");
+	printf("*        Executing sample 'PutS3Object'        *\n");
+	printf("************************************************\n");
+
+	std::string sObjectContent =
+		"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc tortor metus, sagittis eget augue ut,\n"
+		"feugiat vehicula risus. Integer tortor mauris, vehicula nec mollis et, consectetur eget tortor. In ut\n"
+		"elit sagittis, ultrices est ut, iaculis turpis. In hac habitasse platea dictumst. Donec laoreet tellus\n"
+		"at auctor tempus. Praesent nec diam sed urna sollicitudin vehicula eget id est. Vivamus sed laoreet\n"
+		"lectus. Aliquam convallis condimentum risus, vitae porta justo venenatis vitae. Phasellus vitae nunc\n"
+		"varius, volutpat quam nec, mollis urna. Donec tempus, nisi vitae gravida facilisis, sapien sem malesuada\n"
+		"purus, id semper libero ipsum condimentum nulla. Suspendisse vel mi leo. Morbi pellentesque placerat congue.\n"
+		"Nunc sollicitudin nunc diam, nec hendrerit dui commodo sed. Duis dapibus commodo elit, id commodo erat\n"
+		"congue id. Aliquam erat volutpat.\n";
+
+	std::string sEndpointUrl;
+	if (sRegionName.compare("us-east-1") == 0) {
+		sEndpointUrl = "https://s3.amazonaws.com/" + sBucketName + "/" + sFileKey;
+	}
+	else {
+		sEndpointUrl = "https://s3-" + sRegionName + ".amazonaws.com/" + sBucketName + "/" + sFileKey;
+	}
+
+	// precompute hash of the body content
+	std::string sObjectContentHash = AWS::Auth::AWS4SignerBase::Hash(sObjectContent);
+
+	std::map<std::string, std::string> Headers, QueryParameters;
+	Headers["x-amz-content-sha256"] = sObjectContentHash;
+	Headers["content-length"] = sObjectContent.length();
+	Headers["x-amz-storage-class"] = "REDUCED_REDUNDANCY";
+
+	AWS::Auth::AWS4SignerForAuthorizationHeader Signer(
+		sEndpointUrl, "PUT", "s3", sRegionName);
+
+	std::string sAuthorization = Signer.ComputeSignature(Headers,
+		QueryParameters, // no query parameters
+		sObjectContentHash,
+		awsAccessKey,
+		awsSecretKey);
+
+	// express authorization for this as a header
+	Headers["Authorization"] = sAuthorization;
+
+	// make the call to Amazon S3
+	//String response = HttpUtils.invokeHttpRequest(endpointUrl, "PUT", headers, objectContent);
+	//System.out.println("--------- Response content ---------");
+	//System.out.println(response);
+	//System.out.println("------------------------------------");
+}
 
 int main(int argc, char **argv)
 {
@@ -89,7 +187,7 @@ int main(int argc, char **argv)
 	std::string sFileKey = argv[5];
 	
 	GetS3Object(sBucket, sFileKey, sRegion, sKey, sSecret);
-
+	GetPresignedUrlToS3Object(sBucket, sFileKey, sRegion, sKey, sSecret);
     return 0;
 }
 

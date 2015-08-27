@@ -101,8 +101,8 @@ namespace AWS {
 				const std::string &awsAccessKey,
 				const std::string &awsSecretKey);
 		};
-		class AWS4SignerForQueryParameterAuth : public AWS4SignerBase {
-
+		class AWSUTIL_IMPEX AWS4SignerForQueryParameterAuth : public AWS4SignerBase {
+		public:
 			AWS4SignerForQueryParameterAuth(const std::string &sEndpointUrl, const std::string &sHTTPMethod, const std::string &sServiceName, const std::string &sRegionName);
 
 			/**
@@ -127,7 +127,7 @@ namespace AWS {
 			*         needs to be set as the header 'Authorization' on the subsequent
 			*         HTTP request.
 			*/
-			std::string computeSignature(std::map<std::string, std::string> &Headers,
+			std::string ComputeSignature(std::map<std::string, std::string> &Headers,
 				std::map<std::string, std::string> &QueryParameters,
 				const std::string &bodyHash,
 				const std::string &awsAccessKey,

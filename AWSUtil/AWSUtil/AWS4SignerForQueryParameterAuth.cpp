@@ -8,7 +8,7 @@ AWS::Auth::AWS4SignerForQueryParameterAuth::AWS4SignerForQueryParameterAuth(cons
 {
 }
 
-std::string AWS::Auth::AWS4SignerForQueryParameterAuth::computeSignature(std::map<std::string, std::string> &Headers, std::map<std::string, std::string> &QueryParameters, const std::string &sBodyHash, const std::string & awsAccessKey, const std::string & awsSecretKey)
+std::string AWS::Auth::AWS4SignerForQueryParameterAuth::ComputeSignature(std::map<std::string, std::string> &Headers, std::map<std::string, std::string> &QueryParameters, const std::string &sBodyHash, const std::string & awsAccessKey, const std::string & awsSecretKey)
 {
 	// first get the date and time for the subsequent request, and convert
 	// to ISO 8601 format

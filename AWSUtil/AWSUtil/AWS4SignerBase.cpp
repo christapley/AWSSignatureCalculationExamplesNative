@@ -100,11 +100,6 @@ std::string AWS::Auth::AWS4SignerBase::GetCanonicalizedQueryString(const std::ma
 	std::list<std::pair<std::string, std::string> > SortedParameters;
 	for (auto it = Parameters.cbegin(); it != Parameters.cend(); ++it) {
 		SortedParameters.push_back(std::pair<std::string, std::string>(it->first, it->second));
-		std::string &HeaderName = SortedParameters.back().first;
-		std::transform(HeaderName.begin(), HeaderName.end(), HeaderName.begin(), [](const char in) {
-			if (in <= 'Z' && in >= 'A') return static_cast<int>(in - ('Z' - 'z'));
-			return static_cast<int>(in);
-		});
 	}
 	SortedParameters.sort([](const std::pair<std::string, std::string> &a, const std::pair<std::string, std::string> &b) {
 		return a.first < b.first;
@@ -288,7 +283,8 @@ void AWS::Auth::AWS4SignerBase::GetFormattedTimes(std::string &sDateTime, std::s
 		//Stream << std::put_time(&gtm, "%Y%m%dT%H%M%S%z");
 		Stream << std::put_time(&gtm, "%Y%m%dT%H%M%SZ");
 		sDateTime = Stream.str();
-		//sDateTime = "20150826T125924Z";
+		//sDateTime = "20150827T123720Z";
+
 	}
 	
 	{

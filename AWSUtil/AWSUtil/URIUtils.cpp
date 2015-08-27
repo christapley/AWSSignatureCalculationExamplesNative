@@ -4,7 +4,7 @@ std::string AWS::Util::URIUtils::URLEncode(const std::string & URI, bool bKeepSl
 {
 	std::ostringstream escaped;
 	escaped.fill('0');
-	escaped << std::hex;
+	escaped << std::hex << std::uppercase;
 
 	if (bKeepSlashes) {
 		for (auto it = URI.begin(); it != URI.end(); ++it) {
