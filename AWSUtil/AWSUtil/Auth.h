@@ -32,8 +32,11 @@ namespace AWS {
 
 			static std::string GetCanonicalizedQueryString(const std::map<std::string, std::string> &Parameters);
 			static std::string Hash(const std::string &sText);
+			static std::string Hash(const std::string &sText, size_t nOffset, size_t nLength);
 			static std::string Hash(const std::vector<unsigned char> &Data);
+			static std::string Hash(const std::vector<unsigned char> &Data, size_t nOffset, size_t nLength);
 			static std::string Hash(const char *sData);
+			static std::string Hash(const char *sData, size_t nOffset, size_t nLength);
 
 			static const std::string &EmptyBodySHA256();
 			static const std::string &UnsignedPayload();
@@ -135,7 +138,7 @@ namespace AWS {
 
 		};
 
-		class AWS4SignerForChunkedUpload : public AWS4SignerBase {
+		class AWSUTIL_IMPEX AWS4SignerForChunkedUpload : public AWS4SignerBase {
 		public:
 			/**
 			* SHA256 substitute marker used in place of x-amz-content-sha256 when
@@ -207,7 +210,7 @@ namespace AWS {
 			* @param SignedChunk A new buffer of data for upload containing the chunk header plus
 			*         user data
 			*/
-			void ConstructSignedChunk(size_t nUserDataLen, const std::vector<unsigned char> &UserData, std::vector<unsigned char> &SignedChunk);
+			size_t ConstructSignedChunk(size_t nMaxChunkSize, size_t nUserDataLen, const void *pUserData, std::vector<unsigned char> &SignedChunk);
 			
 		private:
 			/**

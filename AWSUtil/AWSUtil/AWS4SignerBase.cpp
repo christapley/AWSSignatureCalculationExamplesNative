@@ -127,6 +127,15 @@ std::string AWS::Auth::AWS4SignerBase::Hash(const std::string & sText)
 	return AWS::Util::BinaryUtils::ToHex(Digest);
 }
 
+std::string AWS::Auth::AWS4SignerBase::Hash(const std::string & sText, size_t nOffset, size_t nLength)
+{
+	std::vector<unsigned char> Digest;
+	Digest.resize(SHA256_DIGEST_SIZE);
+	sha256(reinterpret_cast<const unsigned char *>(sText.c_str() + nOffset), nLength, &Digest[0]);
+
+	return AWS::Util::BinaryUtils::ToHex(Digest);
+}
+
 std::string AWS::Auth::AWS4SignerBase::Hash(const char * sData)
 {
 	std::vector<unsigned char> Digest;
@@ -136,11 +145,29 @@ std::string AWS::Auth::AWS4SignerBase::Hash(const char * sData)
 	return AWS::Util::BinaryUtils::ToHex(Digest);
 }
 
+std::string AWS::Auth::AWS4SignerBase::Hash(const char * sData, size_t nOffset, size_t nLength)
+{
+	std::vector<unsigned char> Digest;
+	Digest.resize(SHA256_DIGEST_SIZE);
+	sha256(reinterpret_cast<const unsigned char *>(sData + nOffset), nLength, &Digest[0]);
+
+	return AWS::Util::BinaryUtils::ToHex(Digest);
+}
+
 std::string AWS::Auth::AWS4SignerBase::Hash(const std::vector<unsigned char> &Data)
 {
 	std::vector<unsigned char> Digest;
 	Digest.resize(SHA256_DIGEST_SIZE);
 	sha256(&Data[0], Data.size(), &Digest[0]);
+
+	return AWS::Util::BinaryUtils::ToHex(Digest);
+}
+
+std::string AWS::Auth::AWS4SignerBase::Hash(const std::vector<unsigned char> &Data, size_t nOffset, size_t nLength)
+{
+	std::vector<unsigned char> Digest;
+	Digest.resize(SHA256_DIGEST_SIZE);
+	sha256(&Data[nOffset], nLength, &Digest[0]);
 
 	return AWS::Util::BinaryUtils::ToHex(Digest);
 }
@@ -283,7 +310,7 @@ void AWS::Auth::AWS4SignerBase::GetFormattedTimes(std::string &sDateTime, std::s
 		//Stream << std::put_time(&gtm, "%Y%m%dT%H%M%S%z");
 		Stream << std::put_time(&gtm, "%Y%m%dT%H%M%SZ");
 		sDateTime = Stream.str();
-		//sDateTime = "20150827T123720Z";
+		//sDateTime = "20150929T125648Z";
 
 	}
 	
@@ -292,5 +319,6 @@ void AWS::Auth::AWS4SignerBase::GetFormattedTimes(std::string &sDateTime, std::s
 		std::stringstream Stream;
 		Stream << std::put_time(&gtm, "%Y%m%d");
 		sDate = Stream.str();
+		//sDate = "20150929";
 	}
 }
